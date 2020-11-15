@@ -21,6 +21,7 @@
 import psutil
 
 from libqtile.widget import base
+from libqtile import utils
 
 
 class CPU(base.ThreadedPollText):
@@ -34,7 +35,13 @@ class CPU(base.ThreadedPollText):
             "CPU display format",
         ),
         ("bar_unused", ":", "Inactive char for ascii-bar"),
-        ("bar_used", "#", "active char for ascii-bar")
+        ("bar_used", "#", "active char for ascii-bar"),
+        ("color_low", None, "Color to use with the Bar when usage is below medium threshold. If None self.foreground is used"),
+        ("color_medium", "FFBA08", "Color to use with the Bar when usage is above medium threshold"),
+        ("color_high", "D00000", "Color to use with the Bar when usage is above high threshold"),
+        ("sync_colors", True, "Use the threshold color values with all outputs"),
+        ("threshold_medium", 50, "When to use medium color"),
+        ("threshold_high", 80, "When to use high color"),
     ]
 
     def __init__(self, **config):
@@ -47,12 +54,21 @@ class CPU(base.ThreadedPollText):
 
     def poll(self):
         variables = dict()
-        cur_percent = psutil.cpu_percent();
+        cur_percent = psutil.cpu_percent()
         cpu_used = (round(cur_percent / 10)) * self.bar_used
         cpu_unused = (10-len(cpu_used)) * self.bar_unused
 
-        variables["load_percent"] = round(cur_percent)
-        variables["load_bar"] = f"{cpu_used}{cpu_unused}"
+        if cur_percent < self.threshold_medium:
+            bar_color = self.color_low if self.color_low else self.foreground
+        elif cur_percent < self.threshold_high:
+            bar_color = self.color_medium
+        else:
+            bar_color = self.color_high
+
+        text_color = bar_color if self.sync_colors else self.foreground
+
+        variables["load_percent"] = f'<span foreground="{utils.hex(text_color)}">{round(cur_percent)}</span>'
+        variables["load_bar"] = f'<span foreground="{utils.hex(bar_color)}">{cpu_used}</span>{cpu_unused}'
         freq = psutil.cpu_freq()
         variables["freq_current"] = round(freq.current / 1000, 1)
         variables["freq_max"] = round(freq.max / 1000, 1)

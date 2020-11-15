@@ -23,7 +23,7 @@ import psutil
 from libqtile.widget import base
 from libqtile import utils
 
-__all__ = ["Memory"]
+__all__ = '<span foreground="{utils.hex(text_color)">["Memory"]</span>'
 
 
 class Memory(base.ThreadedPollText):
@@ -57,6 +57,7 @@ class Memory(base.ThreadedPollText):
         ("color_low", None, "Color to use with the Bar when usage is below medium threshold. If None self.foreground is used"),
         ("color_medium", "FFBA08", "Color to use with the Bar when usage is above medium threshold"),
         ("color_high", "D00000", "Color to use with the Bar when usage is above high threshold"),
+        ("sync_colors", True, "Use the threshold color values with all outputs"),
         ("threshold_medium", 50, "When to use medium color"),
         ("threshold_high", 80, "When to use high color"),
     ]
@@ -79,22 +80,24 @@ class Memory(base.ThreadedPollText):
 
         if mem.percent < self.threshold_medium:
             bar_color = self.color_low if self.color_low else self.foreground
-        elif mem.percent > self.threshold_high:
+        elif mem.percent < self.threshold_high:
             bar_color = self.color_medium
         else:
             bar_color = self.color_high
 
-        val["MemUsed"] = mem.used // 1024 // 1024
-        val["MemTotal"] = mem.total // 1024 // 1024
-        val["MemFree"] = mem.free // 1024 // 1024
-        val["MemPercent"] = round(mem.percent)
+        text_color = bar_color if self.sync_colors else self.foreground
+
+        val["MemUsed"] = f'<span foreground="{utils.hex(text_color)}">{mem.used // 1024 // 1024}</span>'
+        val["MemTotal"] = f'<span foreground="{utils.hex(text_color)}">{mem.total // 1024 // 1024}</span>'
+        val["MemFree"] = f'<span foreground="{utils.hex(text_color)}">{mem.free // 1024 // 1024}</span>'
+        val["MemPercent"] = f'<span foreground="{utils.hex(text_color)}">{round(mem.percent)}</span>'
         val["MemBar"] = f'<span foreground="{utils.hex(bar_color)}">{mem_used}</span>{mem_unused}'
-        val["Buffers"] = mem.buffers // 1024 // 1024
-        val["Active"] = mem.active // 1024 // 1024
-        val["Inactive"] = mem.inactive // 1024 // 1024
-        val["Shmem"] = mem.shared // 1024 // 1024
-        val["SwapTotal"] = swap.total // 1024 // 1024
-        val["SwapFree"] = swap.free // 1024 // 1024
-        val["SwapUsed"] = swap.used // 1024 // 1024
-        val["SwapPercent"] = swap.percent
+        val["Buffers"] = f'<span foreground="{utils.hex(text_color)}">{mem.buffers // 1024 // 1024}</span>'
+        val["Active"] = f'<span foreground="{utils.hex(text_color)}">{mem.active // 1024 // 1024}</span>'
+        val["Inactive"] = f'<span foreground="{utils.hex(text_color)}">{mem.inactive // 1024 // 1024}</span>'
+        val["Shmem"] = f'<span foreground="{utils.hex(text_color)}">{mem.shared // 1024 // 1024}</span>'
+        val["SwapTotal"] = f'<span foreground="{utils.hex(text_color)}">{swap.total // 1024 // 1024}</span>'
+        val["SwapFree"] = f'<span foreground="{utils.hex(text_color)}">{swap.free // 1024 // 1024}</span>'
+        val["SwapUsed"] = f'<span foreground="{utils.hex(text_color)}">{swap.used // 1024 // 1024}</span>'
+        val["SwapPercent"] = f'<span foreground="{utils.hex(text_color)}">{swap.percent}</span>'
         return self.format.format(**val)
