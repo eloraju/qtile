@@ -33,6 +33,8 @@ class CPU(base.ThreadedPollText):
             "CPU {freq_current}GHz {load_percent}%",
             "CPU display format",
         ),
+        ("bar_unused", ":", "Inactive char for ascii-bar"),
+        ("bar_used", "#", "active char for ascii-bar")
     ]
 
     def __init__(self, **config):
@@ -45,8 +47,12 @@ class CPU(base.ThreadedPollText):
 
     def poll(self):
         variables = dict()
+        cur_percent = psutil.cpu_percent();
+        cpu_used = (round(cur_percent / 10)) * self.bar_used
+        cpu_unused = (10-len(cpu_used)) * self.bar_unused
 
-        variables["load_percent"] = round(psutil.cpu_percent(), 1)
+        variables["load_percent"] = round(cur_percent)
+        variables["load_bar"] = f"{cpu_used}{cpu_unused}"
         freq = psutil.cpu_freq()
         variables["freq_current"] = round(freq.current / 1000, 1)
         variables["freq_max"] = round(freq.max / 1000, 1)

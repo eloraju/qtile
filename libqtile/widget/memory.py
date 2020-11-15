@@ -21,6 +21,7 @@
 import psutil
 
 from libqtile.widget import base
+from libqtile import utils
 
 __all__ = ["Memory"]
 
@@ -51,6 +52,13 @@ class Memory(base.ThreadedPollText):
     defaults = [
         ("format", "{MemUsed}M/{MemTotal}M", "Formatting for field names."),
         ("update_interval", 1.0, "Update interval for the Memory"),
+        ("bar_unused", ":", "Inactive char for ascii-bar"),
+        ("bar_used", "#", "Active char for ascii-bar"),
+        ("color_low", None, "Color to use with the Bar when usage is below medium threshold. If None self.foreground is used"),
+        ("color_medium", "FFBA08", "Color to use with the Bar when usage is above medium threshold"),
+        ("color_high", "D00000", "Color to use with the Bar when usage is above high threshold"),
+        ("threshold_medium", 50, "When to use medium color"),
+        ("threshold_high", 80, "When to use high color"),
     ]
 
     def __init__(self, **config):
@@ -62,13 +70,25 @@ class Memory(base.ThreadedPollText):
         return self.update_interval
 
     def poll(self):
+        val = {}
         mem = psutil.virtual_memory()
         swap = psutil.swap_memory()
-        val = {}
+        mem_used = (round((mem.used/mem.total) * 10)) * self.bar_used
+        mem_unused = (10-len(mem_used)) * self.bar_unused
+
+
+        if mem.percent < self.threshold_medium:
+            bar_color = self.color_low if self.color_low else self.foreground
+        elif mem.percent > self.threshold_high:
+            bar_color = self.color_medium
+        else:
+            bar_color = self.color_high
+
         val["MemUsed"] = mem.used // 1024 // 1024
         val["MemTotal"] = mem.total // 1024 // 1024
         val["MemFree"] = mem.free // 1024 // 1024
-        val["MemPercent"] = mem.percent
+        val["MemPercent"] = round(mem.percent)
+        val["MemBar"] = f'<span foreground="{utils.hex(bar_color)}">{mem_used}</span>{mem_unused}'
         val["Buffers"] = mem.buffers // 1024 // 1024
         val["Active"] = mem.active // 1024 // 1024
         val["Inactive"] = mem.inactive // 1024 // 1024
