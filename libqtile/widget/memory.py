@@ -74,7 +74,7 @@ class Memory(base.ThreadedPollText):
         val = {}
         mem = psutil.virtual_memory()
         swap = psutil.swap_memory()
-        mem_used = (round((mem.used/mem.total) * 10)) * self.bar_used
+        mem_used = (round( mem.percent / 10)) * self.bar_used
         mem_unused = (10-len(mem_used)) * self.bar_unused
 
 
