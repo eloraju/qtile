@@ -98,3 +98,4 @@ def test_threshold_color_changes(monkeypatch):
 
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 99))
     assert mem.poll() == '<span foreground="#999999">99</span>'
+
