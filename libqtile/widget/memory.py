@@ -85,19 +85,19 @@ class Memory(base.ThreadedPollText):
         else:
             bar_color = self.color_high
 
-        text_color = bar_color if self.sync_colors else self.foreground
+        text_color = utils.hex(bar_color) if self.sync_colors else utils.hex(self.foreground)
 
-        val["MemUsed"] = f'<span foreground="{utils.hex(text_color)}">{mem.used // 1024 // 1024}</span>'
-        val["MemTotal"] = f'<span foreground="{utils.hex(text_color)}">{mem.total // 1024 // 1024}</span>'
-        val["MemFree"] = f'<span foreground="{utils.hex(text_color)}">{mem.free // 1024 // 1024}</span>'
-        val["MemPercent"] = f'<span foreground="{utils.hex(text_color)}">{round(mem.percent)}</span>'
-        val["MemBar"] = f'<span foreground="{utils.hex(bar_color)}">{mem_used}</span>{mem_unused}'
-        val["Buffers"] = f'<span foreground="{utils.hex(text_color)}">{mem.buffers // 1024 // 1024}</span>'
-        val["Active"] = f'<span foreground="{utils.hex(text_color)}">{mem.active // 1024 // 1024}</span>'
-        val["Inactive"] = f'<span foreground="{utils.hex(text_color)}">{mem.inactive // 1024 // 1024}</span>'
-        val["Shmem"] = f'<span foreground="{utils.hex(text_color)}">{mem.shared // 1024 // 1024}</span>'
-        val["SwapTotal"] = f'<span foreground="{utils.hex(text_color)}">{swap.total // 1024 // 1024}</span>'
-        val["SwapFree"] = f'<span foreground="{utils.hex(text_color)}">{swap.free // 1024 // 1024}</span>'
-        val["SwapUsed"] = f'<span foreground="{utils.hex(text_color)}">{swap.used // 1024 // 1024}</span>'
-        val["SwapPercent"] = f'<span foreground="{utils.hex(text_color)}">{swap.percent}</span>'
+        val["MemUsed"] = f'<span foreground="{text_color}">{mem.used // 1024 // 1024}</span>'
+        val["MemTotal"] = f'<span foreground="{text_color}">{mem.total // 1024 // 1024}</span>'
+        val["MemFree"] = f'<span foreground="{text_color}">{mem.free // 1024 // 1024}</span>'
+        val["MemPercent"] = f'<span foreground="{text_color}">{round(mem.percent)}</span>'
+        val["MemBar"] = f'<span foreground="{text_color}">{mem_used}</span>{mem_unused}'
+        val["Buffers"] = f'<span foreground="{text_color}">{mem.buffers // 1024 // 1024}</span>'
+        val["Active"] = f'<span foreground="{text_color}">{mem.active // 1024 // 1024}</span>'
+        val["Inactive"] = f'<span foreground="{text_color}">{mem.inactive // 1024 // 1024}</span>'
+        val["Shmem"] = f'<span foreground="{text_color}">{mem.shared // 1024 // 1024}</span>'
+        val["SwapTotal"] = f'<span foreground="{text_color}">{swap.total // 1024 // 1024}</span>'
+        val["SwapFree"] = f'<span foreground="{text_color}">{swap.free // 1024 // 1024}</span>'
+        val["SwapUsed"] = f'<span foreground="{text_color}">{swap.used // 1024 // 1024}</span>'
+        val["SwapPercent"] = f'<span foreground="{text_color}">{swap.percent}</span>'
         return self.format.format(**val)
