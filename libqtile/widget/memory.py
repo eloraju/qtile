@@ -58,9 +58,10 @@ class Memory(base.ThreadedPollText):
         ("color_low", None, "Color to use with the Bar when usage is below medium threshold. If None self.foreground is used"),
         ("color_medium", "FFBA08", "Color to use with the Bar when usage is above medium threshold"),
         ("color_high", "D00000", "Color to use with the Bar when usage is above high threshold"),
-        ("sync_colors", True, "Use the threshold color values with all outputs"),
+        ("thresholds", True, "Use the threshold color values with all outputs"),
         ("threshold_medium", 50, "When to use medium color"),
         ("threshold_high", 80, "When to use high color"),
+        ("decimals", 0, "How many decimals are shown")
     ]
 
     def __init__(self, **config):
@@ -71,12 +72,17 @@ class Memory(base.ThreadedPollText):
         self.update(self.poll())
         return self.update_interval
 
+    def apply_color(self, color, val, is_percent = False):
+        value = val if is_percent else self.human_readable(val)
+        return f'<span foreground="{color}">{value}</span>'
+
+    def human_readable(self, value):
+        return round(value / 1024 / 1024, self.decimals)
+
     def poll(self):
         val = {}
         mem = psutil.virtual_memory()
         swap = psutil.swap_memory()
-        mem_used = (round( mem.percent / 10)) * self.bar_used
-        mem_unused = (10-len(mem_used)) * self.bar_unused
 
 
         if mem.percent < self.threshold_medium:
@@ -86,19 +92,25 @@ class Memory(base.ThreadedPollText):
         else:
             bar_color = self.color_high
 
-        text_color = utils.hex(bar_color) if self.sync_colors else utils.hex(self.foreground)
+        mem_bar_used = (round( mem.percent / 10)) * self.bar_used
+        mem_bar_unused = (10-len(mem_bar_used)) * self.bar_unused
 
-        val["MemUsed"] = f'<span foreground="{text_color}">{mem.used // 1024 // 1024}</span>'
-        val["MemTotal"] = f'<span foreground="{text_color}">{mem.total // 1024 // 1024}</span>'
-        val["MemFree"] = f'<span foreground="{text_color}">{mem.free // 1024 // 1024}</span>'
-        val["MemPercent"] = f'<span foreground="{text_color}">{round(mem.percent)}</span>'
-        val["MemBar"] = f'<span foreground="{text_color}">{mem_used}</span>{mem_unused}'
-        val["Buffers"] = f'<span foreground="{text_color}">{mem.buffers // 1024 // 1024}</span>'
-        val["Active"] = f'<span foreground="{text_color}">{mem.active // 1024 // 1024}</span>'
-        val["Inactive"] = f'<span foreground="{text_color}">{mem.inactive // 1024 // 1024}</span>'
-        val["Shmem"] = f'<span foreground="{text_color}">{mem.shared // 1024 // 1024}</span>'
-        val["SwapTotal"] = f'<span foreground="{text_color}">{swap.total // 1024 // 1024}</span>'
-        val["SwapFree"] = f'<span foreground="{text_color}">{swap.free // 1024 // 1024}</span>'
-        val["SwapUsed"] = f'<span foreground="{text_color}">{swap.used // 1024 // 1024}</span>'
-        val["SwapPercent"] = f'<span foreground="{text_color}">{swap.percent}</span>'
+        text_color = utils.hex(bar_color) if self.thresholds else utils.hex(self.foreground)
+
+        val["MemUsed"] = self.apply_color(text_color, mem.used) if self.thresholds else mem.used
+        val["MemTotal"] = self.apply_color(text_color, mem.total) if self.thresholds else mem.total
+        val["MemFree"] = self.apply_color(text_color, mem.free) if self.thresholds else mem.free
+        val["MemPercent"] = self.apply_color(text_color, mem.percent, True) if self.thresholds else mem.percent
+        val["MemBar"] = f'<span foreground="#{bar_color}>{mem_bar_used}</span>{mem_bar_unused}'
+        val["Buffers"] = self.apply_color(text_color, mem.buffers) if self.thresholds else mem.buffers
+        val["Active"] = self.apply_color(text_color, mem.active) if self.thresholds else mem.active
+        val["Inactive"] = self.apply_color(text_color, mem.inactive) if self.thresholds else mem.inactive
+        val["Shmem"] = self.apply_color(text_color, mem.shared) if self.thresholds else mem.shared
+        val["SwapTotal"] = self.apply_color(text_color, swap.total) if self.thresholds else swap.total
+        val["SwapFree"] = self.apply_color(text_color, swap.free) if self.thresholds else swap.free
+        val["SwapUsed"] = self.apply_color(text_color, swap.used) if self.thresholds else swap.used
+        val["SwapPercent"] = self.apply_color(text_color, swap.percent, True) if self.thresholds else swap.percent
+
+        print(val)
+
         return self.format.format(**val)
