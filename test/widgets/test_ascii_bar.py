@@ -24,35 +24,35 @@ def get_mem(**mem):
         return MockMem(**mem)
     return virtual_memory
 
-def test_ascii_bar_low_threshold(monkeypatch):
+def test_ascii_bar_low_threshold_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 10))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(format="{MemBar}")
 
     assert mem.poll() == '<span foreground="#ffffff">#</span>:::::::::'
 
-def test_ascii_bar_medium_threshold(monkeypatch):
+def test_ascii_bar_medium_threshold_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 51))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(format="{MemBar}", color_medium="deadbe")
 
     assert mem.poll() == '<span foreground="#deadbe">#####</span>:::::'
 
-def test_ascii_bar_high_threshold(monkeypatch):
+def test_ascii_bar_high_threshold_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 86))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(format="{MemBar}", color_high="deadbe")
 
     assert mem.poll() == '<span foreground="#deadbe">#########</span>:'
 
-def test_ascii_bar_no_markup(monkeypatch):
+def test_ascii_bar_no_markup_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 50))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(format="{MemBar}", markup=False)
 
     assert mem.poll() == '#####:::::'
 
-def test_ascii_bar_changes(monkeypatch):
+def test_ascii_bar_changes_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 50))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(
@@ -73,14 +73,14 @@ def test_ascii_bar_changes(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 90))
     assert mem.poll() == '<span foreground="#222222">#########</span>:'
 
-def test_threshold_colors(monkeypatch):
+def test_threshold_colors_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 50))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(format="{MemPercent}", thresholds=True, color_medium="deadbe")
 
     assert mem.poll() == '<span foreground="#deadbe">50</span>'
 
-def test_threshold_color_changes(monkeypatch):
+def test_threshold_color_changes_memory(monkeypatch):
     monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 11))
     monkeypatch.setattr(psutil,"swap_memory", get_mem())
     mem = Memory(

@@ -89,7 +89,7 @@ class Memory(base.ThreadedPollText):
         val["SwapUsed"] = round(swap.used // 1024 // 1024, self.decimals)
         val["SwapPercent"] = round(swap.percent, self.decimals)
 
-        values = bar_utils.apply_color_fomatting(val)
+        values = bar_utils.apply_color_fomatting(val, self)
         values["MemBar"] = bar_utils.create_ascii_bar(mem.percent, self)
 
         return self.format.format(**values)

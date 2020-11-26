@@ -31,12 +31,12 @@ def apply_color(color, value):
     """ Apply the given color to given value """
     return f'<span foreground="{color}">{value}</span>'
 
-def apply_to_format_values(val, confs):
+def apply_to_format_values(value, confs):
     if confs.thresholds and confs.markup:
-        color = get_treshold_color(value, self)
+        color = get_treshold_color(value, confs)
         return apply_color(color, value)
     else:
-        return value;
+        return value
 
 def apply_color_fomatting(vals, confs):
-    return {k: k, v: apply_to_format_values(v, confs) for k,v in vals.items()}
+    return {k: apply_to_format_values(v, confs) for k,v in vals.items()}

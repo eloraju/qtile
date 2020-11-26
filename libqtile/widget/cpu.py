@@ -64,7 +64,7 @@ class CPU(base.ThreadedPollText):
         variables["freq_max"] = round(freq.max / 1000, self.decimals)
         variables["freq_min"] = round(freq.min / 1000, self.decimals)
 
-        values = bar_utils.apply_color_fomatting(variables)
+        values = bar_utils.apply_color_fomatting(variables, self)
         values["load_bar"] = bar_utils.create_ascii_bar(cpu_percent ,self)
 
         return self.format.format(**values)
