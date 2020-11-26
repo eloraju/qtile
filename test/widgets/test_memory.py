@@ -31,9 +31,9 @@ def test_ascii_bar(monkeypatch):
 
     print(mem.poll())
 
-def test_ascii_bar_low_threshold(monkeypatch):
-    monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 10))
-    monkeypatch.setattr(psutil,"swap_memory", get_mem())
-    mem = Memory(format="{MemBar}")
-
-    print(mem.poll())
+#def test_ascii_bar_low_threshold(monkeypatch):
+#    monkeypatch.setattr(psutil,"virtual_memory", get_mem(percent = 10))
+#    monkeypatch.setattr(psutil,"swap_memory", get_mem())
+#    mem = Memory(format="{MemBar}")
+#
+#    print(mem.poll())
