@@ -20,7 +20,7 @@
 # SOFTWARE.
 import psutil
 
-from libqtile.widget import base
+from libqtile.widget import base, ascii_bar_utils as bar_utils
 from libqtile import utils
 
 __all__ = ["Memory"]
@@ -54,7 +54,8 @@ class Memory(base.ThreadedPollText):
         ("update_interval", 1.0, "Update interval for the Memory"),
         ("bar_unused", ":", "Inactive char for ascii-bar"),
         ("bar_used", "#", "Active char for ascii-bar"),
-        ("color_low", None, "Color to use with the Bar when usage is below medium threshold. If None self.foreground is used"),
+        ("char_count", 10, "Number of characters to use in the ascii bar"),
+        ("color_low", None, "Color to use when usage is below medium threshold. If None self.foreground is used"),
         ("color_medium", "FFBA08", "Color to use with the Bar when usage is above medium threshold"),
         ("color_high", "D00000", "Color to use with the Bar when usage is above high threshold"),
         ("thresholds", True, "Use the threshold color values with all outputs"),
@@ -71,45 +72,25 @@ class Memory(base.ThreadedPollText):
         self.update(self.poll())
         return self.update_interval
 
-    def apply_color(self, color, val, is_percent = False):
-        value = round(val if is_percent else self.to_gigs(val), self.decimals)
-        return f'<span foreground="{color}">{value}</span>'
-
-    def to_gigs(self, value):
-        return value / 1024 / 1024
-
     def poll(self):
         val = {}
         mem = psutil.virtual_memory()
         swap = psutil.swap_memory()
+        val["MemUsed"] = round(mem.used // 1024 // 1024, self.decimals)
+        val["MemTotal"] = round(mem.total // 1024 // 1024, self.decimals)
+        val["MemFree"] = round(mem.free // 1024 // 1024, self.decimals)
+        val["MemPercent"] = round(mem.percent, self.decimals)
+        val["Buffers"] = round(mem.buffers // 1024 // 1024, self.decimals)
+        val["Active"] = round(mem.active // 1024 // 1024, self.decimals)
+        val["Inactive"] = round(mem.inactive // 1024 // 1024, self.decimals)
+        val["Shmem"] = round(mem.shared // 1024 // 1024, self.decimals)
+        val["SwapTotal"] = round(swap.total // 1024 // 1024, self.decimals)
+        val["SwapFree"] = round(swap.free // 1024 // 1024, self.decimals)
+        val["SwapUsed"] = round(swap.used // 1024 // 1024, self.decimals)
+        val["SwapPercent"] = round(swap.percent, self.decimals)
 
+        values = bar_utils.apply_color_fomatting(val)
+        values["MemBar"] = bar_utils.create_ascii_bar(mem.percent, self)
 
-        if mem.percent < self.threshold_medium:
-            bar_color = utils.hex(self.color_low) if self.color_low else utils.hex(self.foreground)
-        elif mem.percent < self.threshold_high:
-            bar_color = utils.hex(self.color_medium)
-        else:
-            bar_color = utils.hex(self.color_high)
+        return self.format.format(**values)
 
-        mem_bar_used = (round( mem.percent / 10)) * self.bar_used
-        mem_bar_unused = (10-len(mem_bar_used)) * self.bar_unused
-        mem_bar = mem_bar_used+mem_bar_unused
-
-        text_color = utils.hex(bar_color) if self.thresholds else utils.hex(self.foreground)
-        use_thresholds = self.thresholds and self.markup
-
-        val["MemUsed"] = self.apply_color(text_color, mem.used) if use_thresholds else mem.used
-        val["MemTotal"] = self.apply_color(text_color, mem.total) if use_thresholds else mem.total
-        val["MemFree"] = self.apply_color(text_color, mem.free) if use_thresholds else mem.free
-        val["MemPercent"] = self.apply_color(text_color, mem.percent, True) if use_thresholds else mem.percent
-        val["MemBar"] = f'<span foreground="{bar_color}">{mem_bar_used}</span>{mem_bar_unused}' if self.markup else mem_bar
-        val["Buffers"] = self.apply_color(text_color, mem.buffers) if use_thresholds else mem.buffers
-        val["Active"] = self.apply_color(text_color, mem.active) if use_thresholds else mem.active
-        val["Inactive"] = self.apply_color(text_color, mem.inactive) if use_thresholds else mem.inactive
-        val["Shmem"] = self.apply_color(text_color, mem.shared) if use_thresholds else mem.shared
-        val["SwapTotal"] = self.apply_color(text_color, swap.total) if use_thresholds else swap.total
-        val["SwapFree"] = self.apply_color(text_color, swap.free) if use_thresholds else swap.free
-        val["SwapUsed"] = self.apply_color(text_color, swap.used) if use_thresholds else swap.used
-        val["SwapPercent"] = self.apply_color(text_color, swap.percent, True) if use_thresholds else swap.percent
-
-        return self.format.format(**val)
