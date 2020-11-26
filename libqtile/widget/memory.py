@@ -33,6 +33,7 @@ class Memory(base.ThreadedPollText):
     MemTotal: Returns total amount of memory
     MemFree: Returns amount of memory free
     MemPercent: Returns memory in use as a percentage
+    MemBar: Returns ascii bar presentation of usage
     Buffers: Returns buffer amount
     Active: Returns active memory
     Inactive: Returns inactive memory
