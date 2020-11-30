@@ -11,6 +11,30 @@ from libqtile import utils
 #        ("threshold_medium", 50, "When to use medium color"),
 #        ("threshold_high", 80, "When to use high color"),
 
+# Optsion for thresholds
+#("thresholds",(50,75), "Default tresholds. This will create three thresholds 0-49, 50-74 and 75+"),
+#("threshold_colors",(ffffff,88888,000000), "Default tresholds."),
+#("threshold_icons",(👍, 😐, 👎), ""),
+
+
+def get_treshold_opts(value, conf) -> (str, str):
+    """ Return a tuple containing the color and icon for given value"""
+    thresholds = conf['thresholds']
+    colors = conf['threshold_colors'] or []
+    icons = conf['threshold_icons'] or []
+    for thres_index in range(thresholds):
+        if value < thresholds[thres_index]:
+            index = max(0, thres_index-1)
+            return (index_or_none(index, colors), index_or_none(index, values))
+
+    return (index_or_none(-1, colors), index_or_none(-1, icons))
+
+def index_or_none(index, values):
+    try:
+        return values[index]
+    except:
+        return None
+
 def create_ascii_bar(percentage, conf):
     """ Create a bar representing percentual uasge of something """
     bar_used = (round( percentage / conf.char_count)) * conf.bar_used
