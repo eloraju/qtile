@@ -1,3 +1,4 @@
+import psutil
 from libqtile.widget import base
 
 
@@ -30,18 +31,19 @@ class SysInfo(base.ThreadPoolText):
     """
 
 
+    def __init__(self, **config):
+        super().__init__("", **config)
+        self.add_defaults(SysInfo.defaults)
+
+
     defaults = [
         ("update_interval", 1.0, "Update interval for the CPU widget"),
-        (
-            "format",
-            "CPU {freq_current}GHz {load_percent}%",
-            "CPU display format",
-        ),
+        ("format","CPU {freq_current}GHz {load_percent}%","CPU display format",),
         ("format", "{MemUsed}M/{MemTotal}M", "Formatting for field names."),
         ("update_interval", 1.0, "Update interval for the Memory"),
     ]
 
-    def get_memory():
+    def get_memory(self):
         mem = psutil.virtual_memory()
         swap = psutil.swap_memory()
         val = {}
@@ -59,10 +61,10 @@ class SysInfo(base.ThreadPoolText):
         val["swap_percent"] = swap.percent
         return val;
 
-    def get_cpu():
+    def get_cpu(self):
         val = {}
 
-        variables["load_percent"] = round(psutil.cpu_percent(), 1)
+        val["load_percent"] = round(psutil.cpu_percent(), 1)
         freq = psutil.cpu_freq()
         val["freq_current"] = round(freq.current / 1000, 1)
         val["freq_max"] = round(freq.max / 1000, 1)
