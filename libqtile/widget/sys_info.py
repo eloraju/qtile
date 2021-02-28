@@ -9,7 +9,7 @@ from libqtile.widget import base
 # - Take a peek into psutil and see what does it offer
 # - Add rounding
 class SysInfo(base.ThreadPoolText):
-    """Displays memory/swap usage
+    """Displays memory/swap and cpu usage
 
     mem_used: Returns memory in use
     mem_total: Returns total amount of memory
@@ -24,6 +24,13 @@ class SysInfo(base.ThreadPoolText):
     swap_used: Returns amount of swap in use
     swap_percent: Returns swap in use as a percentage
 
+    Cpu spesifc data is measured as deltas between the reads
+
+    cpu_load: Returns the cpu load percentage
+    cpu_current_freq: Returns the current cpu frequency
+    cpu_max_freq: Returns the maximum cpu frequency
+    cpu_min_freq: Returns the minumum cpu frequency
+
 
     Widget requirements: psutil_.
 
@@ -37,10 +44,8 @@ class SysInfo(base.ThreadPoolText):
 
 
     defaults = [
-        ("update_interval", 1.0, "Update interval for the CPU widget"),
-        ("format","CPU {freq_current}GHz {load_percent}%","CPU display format",),
-        ("format", "{MemUsed}M/{MemTotal}M", "Formatting for field names."),
-        ("update_interval", 1.0, "Update interval for the Memory"),
+        ("update_interval", 1.0, "Update interval for the widget"),
+        ("format", "{mem_used}M/{mem_total}M", "Formatting for field names."),
     ]
 
     def get_memory(self):
@@ -71,3 +76,10 @@ class SysInfo(base.ThreadPoolText):
         val["freq_min"] = round(freq.min / 1000, 1)
 
         return val;
+
+    def createBarRepresentation(self, cur, max, activeChar, inactiveChar, charCount):
+        return "yolo"
+
+    def poll(self):
+        cpu = self.get_cpu()
+        mem = self.get_memory()
