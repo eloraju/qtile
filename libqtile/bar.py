@@ -20,7 +20,8 @@
 
 from typing import Union
 
-from libqtile import configurable, drawer, window
+from libqtile import configurable, drawer
+from libqtile.backend.x11 import window
 from libqtile.command.base import CommandObject, ItemT
 from libqtile.log_utils import logger
 
@@ -219,7 +220,7 @@ class Bar(Gap, configurable.Configurable):
 
             self.drawer = drawer.Drawer(
                 self.qtile,
-                self.window.window.wid,
+                self.window.wid,
                 self.width,
                 self.height
             )
@@ -231,7 +232,7 @@ class Bar(Gap, configurable.Configurable):
             self.window.handle_EnterNotify = self.handle_EnterNotify
             self.window.handle_LeaveNotify = self.handle_LeaveNotify
             self.window.handle_MotionNotify = self.handle_MotionNotify
-            qtile.windows_map[self.window.window.wid] = self.window
+            qtile.windows_map[self.window.wid] = self.window
             self.window.unhide()
 
             self.crashed_widgets = []
@@ -251,6 +252,7 @@ class Bar(Gap, configurable.Configurable):
         configured = True
         try:
             widget._configure(self.qtile, self)
+            widget.configured = True
         except Exception as e:
             logger.error(
                 "{} widget crashed during _configure with "
@@ -427,7 +429,7 @@ class Bar(Gap, configurable.Configurable):
             height=self.height,
             position=self.position,
             widgets=[i.info() for i in self.widgets],
-            window=self.window.window.wid
+            window=self.window.wid
         )
 
     def is_show(self):

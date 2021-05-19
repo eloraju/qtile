@@ -36,12 +36,10 @@ import sys
 import warnings
 from typing import TYPE_CHECKING, Callable, List, Optional, Union
 
-import xcffib.xproto
-
-from libqtile import configurable, hook, utils, window
+from libqtile import configurable, hook, utils
+from libqtile.backend.x11 import window
 from libqtile.bar import BarType
 from libqtile.command.base import CommandObject, ItemT
-from libqtile.lazy import lazy
 
 if TYPE_CHECKING:
     from libqtile.group import _Group
@@ -95,9 +93,7 @@ class KeyChord:
         self.modifiers = modifiers
         self.key = key
 
-        def noop(qtile):
-            pass
-        submappings.append(Key([], "Escape", lazy.function(noop)))
+        submappings.append(Key([], "Escape"))
         self.submappings = submappings
         self.mode = mode
 
@@ -114,6 +110,7 @@ class Mouse:
         self.button_code = int(self.button.replace('Button', ''))
         for k, v in kwargs.items():
             setattr(self, k, v)
+        self.modmask: int = 0
 
 
 class Drag(Mouse):
@@ -372,7 +369,7 @@ class Screen(CommandObject):
             if old_group is None:
                 ctx = contextlib.nullcontext()
             else:
-                ctx = old_group.disable_mask(xcffib.xproto.EventMask.EnterWindow)
+                ctx = self.qtile.core.masked()
             with ctx:
                 # display clients of the new group and then hide from old group
                 # to remove the screen flickering
@@ -397,7 +394,7 @@ class Screen(CommandObject):
         if name == "layout" and self.group is not None:
             return True, list(range(len(self.group.layouts)))
         elif name == "window" and self.group is not None:
-            return True, [i.window.wid for i in self.group.windows]
+            return True, [i.wid for i in self.group.windows]
         elif name == "bar":
             return False, [x.position for x in self.gaps]
         return None
@@ -413,7 +410,7 @@ class Screen(CommandObject):
                 return self.group.current_window
             else:
                 for i in self.group.windows:
-                    if i.window.wid == sel:
+                    if i.wid == sel:
                         return i
         elif name == "bar":
             return getattr(self, sel)
@@ -481,37 +478,38 @@ class Group:
 
     Parameters
     ==========
-    name : string
+    name: string
         the name of this group
-    matches : default ``None``
+    matches: default ``None``
         list of ``Match`` objects whose  windows will be assigned to this group
-    exclusive : boolean
+    exclusive: boolean
         when other apps are started in this group, should we allow them here or not?
-    spawn : string or list of strings
+    spawn: string or list of strings
         this will be ``exec()`` d when the group is created, you can pass
         either a program name or a list of programs to ``exec()``
-    layout : string
+    layout: string
         the name of default layout for this group (e.g. 'max' or 'stack').
         This is the name specified for a particular layout in config.py
         or if not defined it defaults in general the class name in all lower case.
-    layouts : list
+    layouts: list
         the group layouts list overriding global layouts.
         Use this to define a separate list of layouts for this particular group.
-    persist : boolean
+    persist: boolean
         should this group stay alive with no member windows?
-    init : boolean
+    init: boolean
         is this group alive when qtile starts?
-    position : int
+    position  int
         group position
-    label : string
+    label: string
         the display name of the group.
         Use this to define a display name other than name of the group.
         If set to None, the display name is set to the name.
     """
-    def __init__(self, name, matches=None, exclusive=False,
-                 spawn=None, layout=None, layouts=None, persist=True, init=True,
+    def __init__(self, name: str, matches: List[Match] = None, exclusive=False,
+                 spawn: Union[str, List[str]] = None, layout: str = None,
+                 layouts: List = None, persist=True, init=True,
                  layout_opts=None, screen_affinity=None, position=sys.maxsize,
-                 label=None):
+                 label: Optional[str] = None):
         self.name = name
         self.label = label
         self.exclusive = exclusive

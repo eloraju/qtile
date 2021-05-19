@@ -43,6 +43,19 @@ def read_file(p):
         return f.read()
 
 
+def test_extra_files_are_ok():
+    with tempfile.TemporaryDirectory() as tempdir:
+        config_file = os.path.join(tempdir, "config.py")
+        with open(config_file, "w") as config:
+            config.write("from .bar import CommandGraphRoot\n")
+        bar_py = os.path.join(tempdir, "bar.py")
+        with open(bar_py, "w") as config:
+            config.write("from libqtile.command_graph import CommandGraphRoot\n")
+        run_qtile_migrate(config_file)
+        assert os.path.exists(bar_py + BACKUP_SUFFIX)
+        assert read_file(bar_py) == "from libqtile.command.graph import CommandGraphRoot\n"
+
+
 def check_migrate(orig, expected):
     with tempfile.TemporaryDirectory() as tempdir:
         config_path = os.path.join(tempdir, "config.py")
@@ -76,17 +89,29 @@ def test_window_name_change():
     check_migrate(orig, expected)
 
 
-def test_libqtile_command_graph():
+def test_modules_renames():
     orig = textwrap.dedent("""
         from libqtile.command_graph import CommandGraphRoot
+        from libqtile.command_client import CommandClient
+        from libqtile.command_interface import CommandInterface
+        from libqtile.command_object import CommandObject
+        from libqtile.window import Internal
 
-        o = CommandGraphRoot()
+        print(
+            CommandGraphRoot, CommandClient, CommandInterface, CommandObject, Internal
+        )
     """)
 
     expected = textwrap.dedent("""
         from libqtile.command.graph import CommandGraphRoot
+        from libqtile.command.client import CommandClient
+        from libqtile.command.interface import CommandInterface
+        from libqtile.command.base import CommandObject
+        from libqtile.backend.x11.window import Internal
 
-        o = CommandGraphRoot()
+        print(
+            CommandGraphRoot, CommandClient, CommandInterface, CommandObject, Internal
+        )
     """)
 
     check_migrate(orig, expected)
